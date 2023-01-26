@@ -1,0 +1,31 @@
+kind: pipeline
+type: docker
+name: "Valider le code Packer"
+steps:  
+- name: "Verification du code Packer et preparation de la branche formatée"
+  image: alpine
+  commands:
+   - apk update
+   - apk add packer
+   - apk add ansible
+   - ./test-ci.sh
+   - echo "This branch is managed automatically in the Drone pipeline "  > do_not_push_here
+   - packer hcl2_upgrade -output-file=alpine-3-amd64-proxmox.pkr.hcl alpine-3-amd64-proxmox.json
+   - rm .drone.yml alpine-3-amd64-proxmox.json
+
+- name: push commit
+  image: alpine
+  environment:
+    GIT_TERMINAL_PROMPT: 1
+    GIT_USERNAME: Cinabre
+    GIT_PASSWORD:
+      from_secret: git_password
+  commands:
+   - apk add git npm
+   - npm install -g git-credential-env
+   - git add .
+   - git commit -m "Drone auto-commit"
+   - export GIT_PASSWORD
+   - echo $DRONE_BRANCH
+   - git config credential.helper "env --username=GIT_USERNAME --password=GIT_PASSWORD"
+   - git push --set-upstream origin fix-cicd
