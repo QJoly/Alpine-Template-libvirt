@@ -1,0 +1,17 @@
+name: Packer Build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Packer build
+        uses: riznob/packer-build-action@v1.5
+        with:
+          templateFile: alpine-3-amd64-libvirt.json.pkr.hcl
+          
